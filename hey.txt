@@ -1,0 +1,101 @@
+// Getting the signatures based on EIP 712 Signature Scheme:
+const domainType = [
+  { name: "name", type: "string" },
+  { name: "version", type: "string" },
+  { name: "verifyingContract", type: "address" },
+  { name: "salt", type: "bytes32" },
+];
+const metaTransactionType = [
+  { name: "nonce", type: "uint256" },
+  { name: "from", type: "address" },
+  { name: "functionSignature", type: "bytes" },
+];
+let domainData = {
+  name: "TestContract",
+  version: "1",
+  verifyingContract: config.contract.address,
+  salt: "0x" + (42).toString(16).padStart(64, "0"),
+};
+
+const contractInstance = new ethers.Contract(
+        config.contract.address,
+        config.contract.abi as ContractInterface,
+        signer!
+      );
+let nonce = await contractInstance.getNonce(userAddress);
+const contractInterface = new ethers.utils.Interface(config.contract.abi);
+let functionSignature = contractInterface.encodeFunctionData("setQuote", [
+  newQuote,
+]);
+let message = {
+  nonce: parseInt(nonce),
+  from: userAddress,
+  functionSignature: functionSignature,
+};
+
+const dataToSign = JSON.stringify({
+  types: {
+    EIP712Domain: domainType,
+    MetaTransaction: metaTransactionType,
+  },
+  domain: domainData,
+  primaryType: "MetaTransaction",
+  message: message,
+});
+
+let signature = await ethersProvider.send("eth_signTypedData_v3", [
+  userAddress,
+  dataToSign,
+]);
+
+let { r, s, v } = (signature: any) => {
+    if (!ethers.utils.isHexString(signature)) {
+      throw new Error(
+        'Given value "'.concat(signature, '" is not a valid hex string.')
+      );
+    }
+    const r = signature.slice(0, 66);
+    const s = "0x".concat(signature.slice(66, 130));
+    let v = "0x".concat(signature.slice(130, 132));
+    v = ethers.BigNumber.from(v).toString();
+    if (![27, 28].includes(Number(v))) v += 27;
+    return {
+      r: r,
+      s: s,
+      v: Number(v),
+    };
+};
+
+const provider = await biconomy.provider;
+let { data } =
+  await contractInstance.populateTransaction.executeMetaTransaction(
+    userAddress,
+    functionData,
+    r,
+    s,
+    v
+  );
+let txParams = {
+  data: data,
+  to: contractAddress,
+  from: userAddress,
+  signatureType: "EIP712_SIGN",
+};
+await provider.send("eth_sendTransaction", [txParams]);
+// Listen to transaction updates:
+biconomy.on("txHashGenerated", data: { transactionId: string; transactionHash: string; }) => {
+  console.log(data);
+  showSuccessMessage(`tx hash ${data.hash}`);
+});
+
+biconomy.on("txMined", (data: {msg: string; id: string; hash: string; receipt: string}) => {
+  console.log(data);
+});
+
+biconomy.on("onError", (data: {error: any; transactionId: string}) => {
+  console.log(data);
+});
+
+bicnomy.on("txHashChanged", (data: {transactionId: string, transactionHash: string}) => {
+  console.log(data);
+});
