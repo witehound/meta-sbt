@@ -1922,7 +1922,7 @@ contract EIP712MetaTransaction is EIP712Base {
 
     function convertBytesToBytes4(
         bytes memory inBytes
-    ) internal view returns (bytes4 outBytes4) {
+    ) internal pure returns (bytes4 outBytes4) {
         if (inBytes.length == 0) {
             return 0x0;
         }
@@ -2056,12 +2056,11 @@ contract SBT is
         uint256 _mintPriceInWei,
         address mintToken_,
         address _treasury,
-        bool _mustBeWhitelisted,
-        string memory _version
+        bool _mustBeWhitelisted
     )
         ERC721(_name, _symbol)
         EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION)
-        EIP712MetaTransaction(_name, _version)
+        EIP712MetaTransaction(SIGNING_DOMAIN, SIGNATURE_VERSION)
     {
         mintPrice = _mintPriceInWei;
         mintToken = mintToken_;
@@ -2229,18 +2228,16 @@ contract SBTDeployer is EIP712MetaTransaction {
         uint256 _mintPriceInWei,
         address mintToken_,
         address _treasury,
-        bool _mustBeWhitelisted,
-        string memory version
+        bool _mustBeWhitelisted
     ) public {
         SBT sbtContract = new SBT(
             name,
             symbol,
-            msgSender(),
+            msg.sender,
             _mintPriceInWei,
             mintToken_,
             _treasury,
-            _mustBeWhitelisted,
-            version
+            _mustBeWhitelisted
         );
         contracts.push(address(sbtContract));
         counter++;
