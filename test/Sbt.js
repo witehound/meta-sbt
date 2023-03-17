@@ -109,12 +109,7 @@ describe("Sbt", function () {
         message: message,
       });
 
-      const provider = ethers.provider;
-
-      let signature = await provider.send("eth_signTypedData_v3", [
-        owner.address,
-        dataToSign,
-      ]);
+      const provider = ethers.providers.JsonRpcProvider();
     });
   });
 });

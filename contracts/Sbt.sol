@@ -2213,6 +2213,14 @@ contract SBT is
     }
 }
 
+interface ISBT {
+    function safeMint(
+        string memory uri,
+        uint256 id,
+        bytes memory signature
+    ) external payable;
+}
+
 contract SBTDeployer is EIP712MetaTransaction {
     address[] private contracts;
     uint256 public counter;
@@ -2233,7 +2241,7 @@ contract SBTDeployer is EIP712MetaTransaction {
         SBT sbtContract = new SBT(
             name,
             symbol,
-            msg.sender,
+            msgSender(),
             _mintPriceInWei,
             mintToken_,
             _treasury,
@@ -2245,5 +2253,15 @@ contract SBTDeployer is EIP712MetaTransaction {
 
     function getContractByIndex(uint256 index) public view returns (address) {
         return contracts[index];
+    }
+
+    function mint(
+        uint256 index,
+        string memory uri,
+        uint256 id,
+        bytes memory signature
+    ) public {
+        address sbt = getContractByIndex(index);
+        ISBT(sbt).safeMint(uri, id, signature);
     }
 }
