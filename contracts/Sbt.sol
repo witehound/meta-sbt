@@ -2027,13 +2027,7 @@ contract EIP712MetaTransaction is EIP712Base {
 
 pragma solidity ^0.8.4;
 
-contract SBT is
-    ERC721,
-    ERC721URIStorage,
-    Ownable,
-    EIP712,
-    EIP712MetaTransaction
-{
+contract SBT is ERC721, ERC721URIStorage, Ownable, EIP712 {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
@@ -2057,11 +2051,7 @@ contract SBT is
         address mintToken_,
         address _treasury,
         bool _mustBeWhitelisted
-    )
-        ERC721(_name, _symbol)
-        EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION)
-        EIP712MetaTransaction(SIGNING_DOMAIN, SIGNATURE_VERSION)
-    {
+    ) ERC721(_name, _symbol) EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION) {
         mintPrice = _mintPriceInWei;
         mintToken = mintToken_;
         if (_mustBeWhitelisted) {
@@ -2099,7 +2089,7 @@ contract SBT is
         bytes memory signature
     ) public payable {
         require(
-            balanceOf(msgSender()) == 0,
+            balanceOf(_msgSender()) == 0,
             "Only 1 Token per wallet is allowed !"
         );
         if (mustBeWhitelisted) {
@@ -2116,17 +2106,17 @@ contract SBT is
             require(msg.value >= mintPrice, "Not enough funds sent!");
         } else {
             require(
-                IERC20(mintToken).balanceOf(msgSender()) >= mintPrice,
+                IERC20(mintToken).balanceOf(_msgSender()) >= mintPrice,
                 "Not enough funds"
             );
             bool success = IERC20(mintToken).transferFrom(
-                msgSender(),
+                _msgSender(),
                 address(this),
                 mintPrice
             );
             require(success);
         }
-        _safeMint(msgSender(), tokenId);
+        _safeMint(_msgSender(), tokenId);
         _setTokenURI(tokenId, uri);
         _tokenIdCounter.increment();
         MINTED++;
@@ -2150,7 +2140,7 @@ contract SBT is
                 "Nothing to withdraw !"
             );
             IERC20(mintToken).transfer(
-                msgSender(),
+                _msgSender(),
                 IERC20(mintToken).balanceOf(address(this))
             );
         }
@@ -2167,7 +2157,7 @@ contract SBT is
 
     function burn(uint256 tokenId) external {
         require(
-            ownerOf(tokenId) == msgSender(),
+            ownerOf(tokenId) == _msgSender(),
             "Only owner of the token can burn it"
         );
         _burn(tokenId);
@@ -2223,6 +2213,7 @@ interface ISBT {
 
 contract SBTDeployer is EIP712MetaTransaction {
     address[] private contracts;
+    mapping(address => bool) private contractsExist;
     uint256 public counter;
 
     constructor(
@@ -2248,6 +2239,7 @@ contract SBTDeployer is EIP712MetaTransaction {
             _mustBeWhitelisted
         );
         contracts.push(address(sbtContract));
+        contractsExist[address(sbtContract)] = true;
         counter++;
     }
 
@@ -2256,12 +2248,12 @@ contract SBTDeployer is EIP712MetaTransaction {
     }
 
     function mint(
-        uint256 index,
+        address contractAdress,
         string memory uri,
         uint256 id,
         bytes memory signature
     ) public {
-        address sbt = getContractByIndex(index);
-        ISBT(sbt).safeMint(uri, id, signature);
+        require(contractsExist[contractAdress], "invalid contract addresss");
+        ISBT(contractAdress).safeMint(uri, id, signature);
     }
 }
