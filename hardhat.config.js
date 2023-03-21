@@ -10,21 +10,5 @@ module.exports = {
         runs: 1000,
       },
     },
-    etworks: {
-      hardhat: {
-        web3Provider: {
-          custom: {
-            path: "http://localhost:8545",
-            options: {
-              chainId: 1337,
-              hardfork: "istanbul",
-              mnemonic:
-                "test test test test test test test test test test test junk",
-            },
-            networkId: "*",
-          },
-        },
-      },
-    },
   },
 };
