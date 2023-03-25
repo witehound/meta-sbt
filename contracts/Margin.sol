@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
+import "hardhat/console.sol";
 
 contract Margin {
     enum TrdaeType {
@@ -37,13 +38,13 @@ contract Margin {
             margin
         );
         Trade memory trade = Trade(volume, margin, liquidation);
-        if (traderIdInstruments[msg.sender][id] != 0) {
+        if (traderIdInstruments[msg.sender][id] == 0) {
             newInstrumentBuy(id, trade);
         } else {
             uint256 tempInstrumentTrades = instrumentTradesCount[msg.sender][
                 id
             ];
-            require(tempInstrumentTrades == 0);
+            require(tempInstrumentTrades != 0);
 
             tempInstrumentTrades += 1;
 
@@ -55,6 +56,7 @@ contract Margin {
 
     function newInstrumentBuy(uint256 id, Trade memory trade) internal {
         require(traderIdInstruments[msg.sender][id] == 0);
+
         uint256 templength = traderInstrumentsCount[msg.sender];
         templength += 1;
 
@@ -63,7 +65,7 @@ contract Margin {
 
         tempInstrumentTrades += 1;
 
-        traderInstrumentsCount[msg.sender] = 1;
+        traderInstrumentsCount[msg.sender] += 1;
 
         traderInstrumnetTrade[msg.sender][id] = trade;
 
