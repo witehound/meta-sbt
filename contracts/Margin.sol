@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-contract LinkedList {
+contract Margin {
     mapping(address => mapping(uint256 => uint256)) public tradesVolume;
     mapping(address => uint256) public tradeslength;
     mapping(address => mapping(uint256 => uint256)) public instruments;
