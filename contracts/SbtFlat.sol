@@ -623,20 +623,7 @@ pragma solidity ^0.8.0;
  */
 abstract contract Context {
     function _msgSender() internal view virtual returns (address sender) {
-        if (msg.sender == address(this)) {
-            bytes memory array = msg.data;
-            uint256 index = msg.data.length;
-            assembly {
-                // Load the 32 bytes word from memory with the address on the lower 20 bytes, and mask those.
-                sender := and(
-                    mload(add(array, index)),
-                    0xffffffffffffffffffffffffffffffffffffffff
-                )
-            }
-        } else {
-            sender = msg.sender;
-        }
-        return sender;
+        return msg.sender;
     }
 
     function _msgData() internal view virtual returns (bytes calldata) {
@@ -2122,6 +2109,43 @@ contract SBT is ERC721, ERC721URIStorage, Ownable, EIP712 {
         MINTED++;
     }
 
+    function safeMint(
+        address sender,
+        string memory uri,
+        uint256 id,
+        bytes memory signature
+    ) public payable {
+        require(balanceOf(sender) == 0, "Only 1 Token per wallet is allowed !");
+        if (mustBeWhitelisted) {
+            require(MINTED == id, "Signature already used");
+            require(
+                _check(id, signature) == signerAddress,
+                "Signature validation failed"
+            );
+        }
+
+        uint256 tokenId = _tokenIdCounter.current();
+
+        if (mintToken == address(0)) {
+            require(msg.value >= mintPrice, "Not enough funds sent!");
+        } else {
+            require(
+                IERC20(mintToken).balanceOf(sender) >= mintPrice,
+                "Not enough funds"
+            );
+            bool success = IERC20(mintToken).transferFrom(
+                sender,
+                address(this),
+                mintPrice
+            );
+            require(success);
+        }
+        _safeMint(sender, tokenId);
+        _setTokenURI(tokenId, uri);
+        _tokenIdCounter.increment();
+        MINTED++;
+    }
+
     function setWhitelistFlag(bool choice) external onlyOwner {
         mustBeWhitelisted = choice;
     }
@@ -2205,6 +2229,7 @@ contract SBT is ERC721, ERC721URIStorage, Ownable, EIP712 {
 
 interface ISBT {
     function safeMint(
+        address sender,
         string memory uri,
         uint256 id,
         bytes memory signature
@@ -2252,8 +2277,8 @@ contract SBTDeployer is EIP712MetaTransaction {
         string memory uri,
         uint256 id,
         bytes memory signature
-    ) public {
+    ) public payable {
         require(contractsExist[contractAdress], "invalid contract addresss");
-        ISBT(contractAdress).safeMint(uri, id, signature);
+        ISBT(contractAdress).safeMint(msgSender(), uri, id, signature);
     }
 }
