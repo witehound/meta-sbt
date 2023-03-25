@@ -14,12 +14,14 @@ contract Margin {
     }
 
     struct Trade {
+        uint256 entry;
         uint256 volume;
         uint256 margin;
         uint256 liquidation;
     }
 
     uint256 price = 1 ether;
+    uint256 newprice = 2 ether;
 
     mapping(address => uint256) public traderInstrumentsCount;
 
@@ -30,14 +32,15 @@ contract Margin {
     mapping(address => mapping(uint256 => uint256))
         public instrumentTradesCount;
 
-    mapping(address => mapping(uint256 => Trade)) public traderInstrumnetTrade;
+    mapping(address => mapping(uint256 => mapping(uint256 => Trade)))
+        public traderInstrumnetTrade;
 
     function buy(uint256 id, uint256 amount, uint256 margin) external {
         (uint256 volume, uint256 liquidation) = calculateBuyMargin(
             amount,
             margin
         );
-        Trade memory trade = Trade(volume, margin, liquidation);
+        Trade memory trade = Trade(price, volume, margin, liquidation);
         if (traderIdInstruments[msg.sender][id] == 0) {
             newInstrumentBuy(id, trade);
         } else {
@@ -48,10 +51,27 @@ contract Margin {
 
             tempInstrumentTrades += 1;
 
-            traderInstrumnetTrade[msg.sender][id] = trade;
+            traderInstrumnetTrade[msg.sender][id][tempInstrumentTrades] = trade;
 
             instrumentTradesCount[msg.sender][id] = tempInstrumentTrades;
         }
+    }
+
+    function sell(
+        uint256 id,
+        uint256 tradecount
+    ) external view returns (uint256) {
+        Trade memory trade = traderInstrumnetTrade[msg.sender][id][tradecount];
+
+        require(trade.entry != 0);
+
+        uint256 payout = newprice > trade.entry
+            ? newprice - trade.entry
+            : trade.entry - newprice;
+
+        // delete traderInstrumnetTrade[msg.sender][id][tradecount];
+
+        return (payout * trade.margin) + (trade.volume / trade.margin);
     }
 
     function newInstrumentBuy(uint256 id, Trade memory trade) internal {
@@ -67,7 +87,7 @@ contract Margin {
 
         traderInstrumentsCount[msg.sender] += 1;
 
-        traderInstrumnetTrade[msg.sender][id] = trade;
+        traderInstrumnetTrade[msg.sender][id][tempInstrumentTrades] = trade;
 
         traderInstrumentsId[msg.sender][id] = templength;
         traderIdInstruments[msg.sender][templength] = id;
