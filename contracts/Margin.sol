@@ -2,9 +2,10 @@
 pragma solidity ^0.8.9;
 
 contract Margin {
-    mapping(address => mapping(uint256 => uint256)) public tradesVolume;
     mapping(address => uint256) public tradeslength;
+
     mapping(address => mapping(uint256 => uint256)) public instruments;
+    mapping(address => mapping(uint256 => uint256)) public tradesVolume;
 
     function newTrade(uint256 instrument, uint256 volume) internal {
         require(instruments[msg.sender][instrument] == 0);

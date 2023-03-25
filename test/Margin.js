@@ -15,8 +15,20 @@ describe("Margin", function () {
     return { margin, owner };
   }
   describe("Tests", function () {
-    it("Should create a new deploy margin", async function () {
-      const { margin } = await loadFixture(deployLinkedList);
+    it("Should all equal zero", async function () {
+      const { margin, owner } = await loadFixture(deployLinkedList);
+
+      let tradeslength = await margin.tradeslength(owner.address);
+
+      expect(tradeslength.toNumber()).to.equal(0);
+
+      let instrument = await margin.instruments(owner.address, tradeslength);
+
+      expect(instrument.toNumber()).to.equal(0);
+
+      let tradeVolume = await margin.tradesVolume(owner.address, instrument);
+
+      expect(tradeVolume.toNumber()).to.equal(0);
     });
   });
 });
