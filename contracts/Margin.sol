@@ -2,10 +2,26 @@
 pragma solidity ^0.8.9;
 
 contract Margin {
+    enum TrdaeType {
+        Bid,
+        Ask
+    }
+
+    enum TradeState {
+        Filled,
+        Limit
+    }
+
+    struct Trade {
+        uint256 tradevolume;
+        TrdaeType tradetype;
+        TradeState tradestate;
+    }
+
     mapping(address => uint256) public tradeslength;
 
     mapping(address => mapping(uint256 => uint256)) public instruments;
-    mapping(address => mapping(uint256 => uint256)) public tradesVolume;
+    mapping(address => mapping(uint256 => Trade)) public tradesData;
 
     function newTrade(uint256 instrument, uint256 volume) internal {
         require(instruments[msg.sender][instrument] == 0);
@@ -14,20 +30,35 @@ contract Margin {
 
         instruments[msg.sender][instrument] = temp;
         tradeslength[msg.sender]++;
-        tradesVolume[msg.sender][temp] += volume;
+        tradesData[msg.sender][temp] = makeTradeData(volume);
+    }
+
+    function makeTradeData(
+        uint256 volume
+    ) internal pure returns (Trade memory) {
+        return
+            Trade({
+                tradevolume: volume,
+                tradetype: TrdaeType.Bid,
+                tradestate: TradeState.Filled
+            });
     }
 
     function addTrade(uint256 instrument, uint256 volume) internal {
         require(instruments[msg.sender][instrument] != 0);
         uint256 temp = instruments[msg.sender][instrument];
-        tradesVolume[msg.sender][temp] += volume;
+
+        Trade storage sTrade = tradesData[msg.sender][temp];
+
+        sTrade.tradevolume += volume;
     }
 
     function removeTrade(uint256 instrument, uint256 volume) external {
         require(instruments[msg.sender][instrument] != 0);
         uint256 temp = instruments[msg.sender][instrument];
-        require(tradesVolume[msg.sender][temp] >= volume);
-        tradesVolume[msg.sender][temp] -= volume;
+        Trade storage sTrade = tradesData[msg.sender][temp];
+        require(sTrade.tradevolume >= volume);
+        sTrade.tradevolume -= volume;
     }
 
     function trade(uint256 instrument, uint256 volume) external {

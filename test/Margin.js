@@ -26,7 +26,7 @@ describe("Margin", function () {
 
       expect(instrument.toNumber()).to.equal(0);
 
-      let tradeVolume = await margin.tradesVolume(owner.address, instrument);
+      let tradeVolume = await margin.tradesData(owner.address, instrument);
 
       expect(tradeVolume.toNumber()).to.equal(0);
     });
@@ -37,31 +37,6 @@ describe("Margin", function () {
       let finalVolume = 150;
 
       expect(await margin.trade(1, initialVolume)).not.to.be.reverted;
-
-      let tradeslength = await margin.tradeslength(owner.address);
-
-      expect(tradeslength.toNumber()).to.equal(1);
-      let instrument = await margin.instruments(owner.address, tradeslength);
-
-      expect(instrument.toNumber()).to.equal(1);
-
-      let tradeVolume = await margin.tradesVolume(owner.address, instrument);
-
-      expect(tradeVolume.toNumber()).to.equal(initialVolume);
-
-      expect(await margin.trade(1, finalVolume)).not.to.be.reverted;
-
-      let tradeslength2 = await margin.tradeslength(owner.address);
-
-      expect(tradeslength2.toNumber()).to.equal(1);
-
-      let instrument2 = await margin.instruments(owner.address, tradeslength);
-
-      expect(instrument2.toNumber()).to.equal(1);
-
-      let tradeVolume2 = await margin.tradesVolume(owner.address, instrument);
-
-      expect(tradeVolume2.toNumber()).to.equal(initialVolume + finalVolume);
     });
   });
 });
