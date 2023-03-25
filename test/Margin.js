@@ -34,7 +34,7 @@ describe("Margin", function () {
 
     it("should make buy and confirm value", async function () {
       const { margin, owner } = await loadFixture(deployLinkedList);
-      let initialVolume = ethers.utils.parseEther("1");
+      let initialVolume = ethers.utils.parseEther("0.5");
       let marginValueone = 2;
       let marginValuetwo = 5;
       let marginValuethree = 3;
@@ -67,7 +67,7 @@ describe("Margin", function () {
 
       expect(instrumentTradesCounttwo.toNumber()).to.be.equal(1);
 
-      let profit = await margin.sell(instrumenttwo, 1);
+      let profit = await margin.sell(instrument, 2);
 
       console.log("profit", ethers.utils.formatEther(profit.toString(), 18));
     });

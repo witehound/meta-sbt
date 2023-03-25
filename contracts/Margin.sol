@@ -21,7 +21,7 @@ contract Margin {
     }
 
     uint256 price = 1 ether;
-    uint256 newprice = 2 ether;
+    uint256 newprice = 1.5 ether;
 
     mapping(address => uint256) public traderInstrumentsCount;
 
@@ -66,12 +66,14 @@ contract Margin {
         require(trade.entry != 0);
 
         uint256 payout = newprice > trade.entry
-            ? newprice - trade.entry
-            : trade.entry - newprice;
+            ? (newprice * trade.volume) - (trade.entry * trade.volume)
+            : (trade.entry * trade.volume) - (newprice * trade.volume);
+
+        payout = payout / 1 ether;
 
         // delete traderInstrumnetTrade[msg.sender][id][tradecount];
 
-        return (payout * trade.margin) + (trade.volume / trade.margin);
+        return payout + (trade.volume / trade.margin);
     }
 
     function newInstrumentBuy(uint256 id, Trade memory trade) internal {
