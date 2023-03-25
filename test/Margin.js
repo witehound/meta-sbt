@@ -10,7 +10,7 @@ describe("Margin", function () {
     const [owner, otherAccount] = await ethers.getSigners();
 
     const Margin = await ethers.getContractFactory("Margin");
-    const margin = await List.deploy();
+    const margin = await Margin.deploy();
 
     return { margin, owner };
   }
