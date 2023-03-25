@@ -76,7 +76,7 @@ contract Margin {
     function calculateBuyMargin(
         uint256 amount,
         uint256 margin
-    ) internal view returns (uint256, uint256) {
+    ) public view returns (uint256, uint256) {
         uint256 liquidation = price / margin;
         uint256 liquidationPrice = price - liquidation;
         uint256 volume = amount * margin;
