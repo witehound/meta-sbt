@@ -36,6 +36,8 @@ describe("Lock", function () {
       const { lock, owner } = await loadFixture(deployOneYearLockFixture);
 
       expect(await lock.owner()).to.equal(owner.address);
+
+      console.log("owner", await lock.owner());
     });
 
     it("Should receive and store the funds to lock", async function () {
