@@ -67,7 +67,7 @@ describe("Margin", function () {
 
       expect(instrumentTradesCounttwo.toNumber()).to.be.equal(1);
 
-      let profit = await margin.sell(instrument, 2);
+      let profit = await margin.sell(instrument, 1);
 
       console.log("profit", ethers.utils.formatEther(profit.toString(), 18));
     });
