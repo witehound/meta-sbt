@@ -10,8 +10,22 @@ describe("Margin", function () {
     const [owner, otherAccount] = await ethers.getSigners();
 
     const Factory = await ethers.getContractFactory("Factory");
-    const factory = await Factory.deploy();
+    const factory = await Factory.deploy(owner.address);
 
     return { factory, owner };
   }
+
+  describe("Tests", function () {
+    it("should return a valid address", async function () {
+      const { factory, owner } = await loadFixture(deployFactory);
+
+      let instrumentId = 1;
+
+      await factory.deployNewInstrumnet(instrumentId);
+
+      let newob = await factory.getOrderBookAddress(instrumentId);
+
+      console.log("valid address", newob);
+    });
+  });
 });
