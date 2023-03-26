@@ -5,7 +5,7 @@ const {
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 
-describe("Margin", function () {
+describe("Factory", function () {
   async function deployFactory() {
     const [owner, otherAccount] = await ethers.getSigners();
 
@@ -19,13 +19,17 @@ describe("Margin", function () {
     it("should return a valid address", async function () {
       const { factory, owner } = await loadFixture(deployFactory);
 
-      let instrumentId = 1;
+      let instrumentId = 5;
 
       await factory.deployNewInstrumnet(instrumentId);
 
       let newob = await factory.getOrderBookAddress(instrumentId);
 
-      console.log("valid address", newob);
+      let data = await factory.getId(instrumentId);
+
+      console.log("valid address", data[1]);
+
+      console.log("data", data[0].toNumber());
     });
   });
 });
