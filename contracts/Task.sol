@@ -107,11 +107,12 @@ contract MyToken is IERC20 {
         return balance;
     }
 
-    function _transferFees() internal returns (bool) {
-        address payable task = payable(address(this));
-        (bool sent, ) = task.call{value: _fee}("");
-        return sent;
-    }
+    // function _transferFees(address sender) internal returns (bool) {
+    //     address payable task = payable(address(this));
+    //     require(sender.balance >= _fee, "Insuficinet fund");
+    //     payable(address(this)).transfer(_fee);
+    //     return true;
+    // }
 
     function transfer(
         address recipient,
@@ -131,21 +132,21 @@ contract MyToken is IERC20 {
 
         uint256 feeAmount = _fee;
 
-        bool sent = _transferFees();
+        // bool sent = _transferFees(msg.sender);
 
-        require(sent, "MyToken: failed fee amount");
+        // require(sent, "MyToken: failed fee amount");
 
         // Transfer tokens
 
-        _balances[msg.sender] -= amount;
+        // _balances[msg.sender] -= amount;
 
-        _balances[recipient] += amount;
+        // _balances[recipient] += amount;
 
-        emit Transfer(msg.sender, recipient, amount);
+        // emit Transfer(msg.sender, recipient, amount);
 
         // Send fee to treasury wallet
 
-        payable(_treasuryWallet).transfer(feeAmount);
+        payable(recipient).transfer(feeAmount);
 
         return true;
     }
